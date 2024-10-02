@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wordle Gamble</title>
+    <style>
+        :root {
+            --primary: #206320;
+            --secondary: #ff0000;
+            --tertiary: #0000ff;
+            --background: #000000;
+            --text: #ffffff;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background);
+            color: var(--text);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        #stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .game-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            color: var(--text);
+            font-size: 2.5em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .game-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .rules-section, .roulette-section {
+            flex: 1;
+            min-width: 300px;
+            background-color: rgba(0, 20, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .rules-section h2 {
+            color: var(--secondary);
+            margin-top: 0;
+        }
+
+        .rules-section ol {
+            padding-left: 20px;
+        }
+
+        .rules-section li {
+            margin-bottom: 10px;
+        }
+
+        .roulette-section {
+            text-align: center;
+        }
+
+        .roulette-section h3 {
+            color: white;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        #roulette-wheel {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 3s cubic-bezier(0.25, 0.1, 0.25, 1);
+            background: conic-gradient(
+                var(--secondary) 0deg 120deg,
+                var(--primary) 120deg 240deg,
+                var(--tertiary) 240deg 360deg
+            );
+            box-shadow: 0 0 30px rgba(11, 11, 11, 0.5), 0 0 60px rgba(255, 0, 0, 0.3), 0 0 90px rgba(0, 0, 255, 0.2);
+        }
+
+        #roulette-wheel::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 80%;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        #roulette-wheel::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 20px solid var(--text);
+            z-index: 2;
+        }
+
+        .number-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .number-option {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--primary);
+            color: var(--background);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .number-option:hover, .number-option.selected {
+            transform: scale(1.2);
+            background-color: var(--secondary);
+        }
+
+        #game-board {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .word-row {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .letter-input {
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+            text-align: center;
+            border: 2px solid rgba(219, 29, 29, 0.1);
+            border-radius: 5px;
+            background-color: rgba(213, 12, 12, 0.1);
+            color: var(--text);
+            transition: all 0.3s ease;
+        }
+
+        .letter-input:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: rgb(16, 118, 16);
+            color: var(--text);
+            border: none;
+            border-radius: 5px;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background-color: #722626;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+        }
+
+        button:disabled {
+            background-color: #4a0000;
+            cursor: not-allowed;
+        }
+
+        #feedback, #answer {
+            margin-top: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #score {
+            margin-top: 10px;
+            font-size: 1.2em;
+            color: var(--secondary);
+            text-align: center;
+        }
+
+        #social-share {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .share-button {
+            margin: 0 5px;
+            padding: 5px 10px;
+            font-size: 14px;
+            background-color: var(--primary);
+            color: var(--background);
+        }
+
+        #leaderboard-link {
+            display: block;
+            margin-top: 20px;
+            color: var(--primary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        #leaderboard-link:hover {
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+        }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        @media (max-width: 768px) {
+            .game-content {
+                flex-direction: column;
+            }
+
+            .rules-section, .roulette-section {
+                width: 100%;
+            }
+
+            .letter-input {
+                width: 30px;
+                height: 30px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="stars"></canvas>
+    <canvas id="confetti-canvas"></canvas>
+    <div class="game-container">
+        <h1>Gambler Wordle</h1>
+        <div class="game-content">
+            <div class="rules-section">
+                <h2>Game Rules</h2>
+                <ol>
+                    <li>Choose how many words you want to guess (1-5).</li>
+                    <li>Spin the wheel to get your words.</li>
+                    <li>Guess the words by entering letters.</li>
+                    <li>Win by guessing a word exactly</li>
+                    <li>Score 21 points for a BIG WIN!</li>
+                </ol>
+            </div>
+            <div class="roulette-section">
+                <div id="roulette-wheel"></div>
+                <h3>How many times do you want to run it?</h3>
+                <div class="number-selector">
+                    <div class="number-option" data-value="1">1</div>
+                    <div class="number-option" data-value="2">2</div>
+                    <div class="number-option" data-value="3">3</div>
+                    <div class="number-option" data-value="4">4</div>
+                    <div class="number-option" data-value="5">5</div>
+                </div>
+                <button id="spin-wheel">Spin Wheel</button>
+                <div id="spins-left">Spins left today: 5</div>
+            </div>
+        </div>
+        <div id="game-board"></div>
+        <button id="submit-guess">Submit Guess</button>
+        <div id="feedback" aria-live="polite"></div>
+        <div id="answer"></div>
+        <div id="score">Score: 0</div>
+        <div id="social-share">
+            <button class="share-button" data-platform="instagram">Share on Instagram</button>
+            <button class="share-button" data-platform="whatsapp">Share on WhatsApp</button>
+            <button class="share-button" data-platform="snapchat">Share on Snapchat</button>
+            <button class="share-button" data-platform="tiktok">Share on TikTok</button>
+        </div>
+        <a href="leaderboard.html" id="leaderboard-link">View Leaderboard</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+        // Game variables
+        let correctWords = [];
+        let spinsLeft = 5;
+        let dailyGamesPlayed = 0;
+        let lastPlayedDate = null;
+        let score = 0;
+        let selectedWordCount = 1;
+
+        // Initialize the game
+        function initGame() {
+            updateSpinsLeft();
+            checkDailyLimit();
+            document.getElementById('game-board').style.display = 'none';
+            document.getElementById('submit-guess').style.display = 'none';
+            updateScore();
+            createStarryBackground();
+            initializeNumberSelector();
+        }
+
+        // Generate random words
+        function generateRandomWords(count) {
+            const words = ['poker', 'royal', 'flush', 'river', 'bluff', 'raise', 'check', 'dealer', 'chips', 'blind', 'ace', 'king', 'queen', 'jack', 'joker'];
+            return words.sort(() => 0.5 - Math.random()).slice(0, count);
+        }
+
+        // Update spins left display
+        function updateSpinsLeft() {
+            document.getElementById('spins-left').textContent = `Spins left today: ${spinsLeft}`;
+        }
+
+        // Update score display
+        function updateScore() {
+            document.getElementById('score').textContent = `Score: ${score}`;
+        }
+
+        // Check daily limit
+        function checkDailyLimit() {
+            const currentDate = new Date().toDateString();
+            if (lastPlayedDate !== currentDate) {
+                spinsLeft = 5;
+                dailyGamesPlayed = 0;
+                lastPlayedDate = currentDate;
+            }
+            updateSpinsLeft();
+        }
+
+        // Handle guess submission
+        document.getElementById('submit-guess').addEventListener('click', function() {
+            if (dailyGamesPlayed >= 5) {
+                alert('You have reached the daily limit. Please come back tomorrow!');
+                return;
+            }
+
+            const guessedWords = getGuessedWords();
+            if (guessedWords.length !== correctWords.length) {
+                alert('Please enter all words before submitting.');
+                return;
+            }
+
+            const feedback = checkGuesses(guessedWords);
+            displayFeedback(feedback);
+            score += calculateScore(feedback);
+            updateScore();
+            
+            showAnswer();
+
+            if (hasDirectHit(feedback) || score >= 21) {
+                endGame(score >= 21);
+            } else if (guessedWords.length === correctWords.length) {
+                endGame(false);
+            }
+        });
+
+        // Get guessed words from input fields
+        function getGuessedWords() {
+            const inputs = document.querySelectorAll('.letter-input');
+            const words = [];
+            let currentWord = '';
+            
+            inputs.forEach((input, index) => {
+                currentWord += input.value.toLowerCase();
+                if ((index + 1) % 5 === 0) {
+                    words.push(currentWord);
+                    currentWord = '';
+                }
+            });
+
+            return words;
+        }
+
+        // Check guesses against correct words
+        function checkGuesses(guessedWords) {
+            return guessedWords.map((guessedWord, index) => {
+                const correctWord = correctWords[index];
+                return guessedWord.split('').map((letter, i) => {
+                    if (letter === correctWord[i]) return 'green';
+                    if (correctWord.includes(letter)) return 'yellow';
+                    return 'grey';
+                });
+            });
+        }
+
+        // Display feedback
+        function displayFeedback(feedback) {
+            const feedbackElement = document.getElementById('feedback');
+            feedbackElement.innerHTML = '';
+            
+            feedback.forEach((word, wordIndex) => {
+                const wordElement = document.createElement('div');
+                word.forEach((letterFeedback, letterIndex) => {
+                    const letterElement = document.createElement('span');
+                    letterElement.textContent = document.querySelectorAll('.letter-input')[wordIndex * 5 + letterIndex].value;
+                    letterElement.style.backgroundColor = letterFeedback;
+                    letterElement.style.color = letterFeedback === 
+
+ 'yellow' ? 'black' : 'white';
+                    letterElement.style.padding = '5px';
+                    letterElement.style.margin = '2px';
+                    letterElement.style.display = 'inline-block';
+                    letterElement.style.width = '20px';
+                    letterElement.style.textAlign = 'center';
+                    wordElement.appendChild(letterElement);
+                });
+                feedbackElement.appendChild(wordElement);
+            });
+        }
+
+        // Show answer after each attempt
+        function showAnswer() {
+            const answerElement = document.getElementById('answer');
+            answerElement.textContent = `The correct word(s): ${correctWords.join(', ')}`;
+        }
+
+        // Calculate score
+        function calculateScore(feedback) {
+            let totalScore = 0;
+            feedback.forEach(word => {
+                word.forEach(letterFeedback => {
+                    if (letterFeedback === 'green') totalScore += 2;
+                    else if (letterFeedback === 'yellow') totalScore += 1;
+                });
+            });
+            return totalScore;
+        }
+
+        // Check for direct hit
+        function hasDirectHit(feedback) {
+            return feedback.some(word => word.every(letterFeedback => letterFeedback === 'green'));
+        }
+
+        // End the game
+        function endGame(isBigWin) {
+            document.getElementById('submit-guess').disabled = true;
+            showSocialShare();
+            updateLeaderboard(score);
+            dailyGamesPlayed++;
+
+            if (isBigWin) {
+                triggerBigWin();
+            }
+        }
+
+        // Show social share buttons
+        function showSocialShare() {
+            document.getElementById('social-share').style.display = 'block';
+        }
+
+        // Update leaderboard
+        function updateLeaderboard(score) {
+            let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+            leaderboard.push({ score: score, date: new Date().toISOString() });
+            leaderboard.sort((a, b) => b.score - a.score);
+            localStorage.setItem('leaderboard', JSON.stringify(leaderboard.slice(0, 10)));
+        }
+
+        // Initialize number selector
+        function initializeNumberSelector() {
+            const numberOptions = document.querySelectorAll('.number-option');
+            numberOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    numberOptions.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedWordCount = parseInt(this.dataset.value);
+                });
+            });
+        }
+
+        // Handle roulette wheel spin
+        document.getElementById('spin-wheel').addEventListener('click', function() {
+            if (spinsLeft <= 0) {
+                alert('No spins left for today. Please come back tomorrow!');
+                return;
+            }
+
+            if (!selectedWordCount) {
+                alert('Please select the number of words you want to guess.');
+                return;
+            }
+
+            spinsLeft--;
+            updateSpinsLeft();
+            
+            // Animate wheel
+            const wheel = document.getElementById('roulette-wheel');
+            const rotation = 360 * 5 + Math.random() * 360; // Spin at least 5 times
+            wheel.style.transform = `rotate(${rotation}deg)`;
+            
+            setTimeout(() => {
+                correctWords = generateRandomWords(selectedWordCount);
+                createGameBoard(selectedWordCount);
+                document.getElementById('game-board').style.display = 'flex';
+                document.getElementById('submit-guess').style.display = 'inline-block';
+                document.getElementById('submit-guess').disabled = false;
+                document.getElementById('feedback').innerHTML = '';
+                document.getElementById('answer').innerHTML = '';
+                document.getElementById('social-share').style.display = 'none';
+                score = 0;
+                updateScore();
+            }, 3000);
+        });
+
+        // Create game board
+        function createGameBoard(numWords) {
+            const gameBoard = document.getElementById('game-board');
+            gameBoard.innerHTML = '';
+            
+            for (let i = 0; i < numWords; i++) {
+                const wordRow = document.createElement('div');
+                wordRow.className = 'word-row';
+                
+                for (let j = 0; j < 5; j++) {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.maxLength = 1;
+                    input.className = 'letter-input';
+                    input.setAttribute('aria-label', `Word ${i + 1}, Letter ${j + 1}`);
+                    wordRow.appendChild(input);
+                }
+                
+                gameBoard.appendChild(wordRow);
+            }
+
+            // Add event listener for auto-focus
+            document.querySelectorAll('.letter-input').forEach((input, index) => {
+                input.addEventListener('input', function() {
+                    if (this.value.length === this.maxLength) {
+                        const nextInput = document.querySelectorAll('.letter-input')[index + 1];
+                        if (nextInput) nextInput.focus();
+                    }
+                });
+            });
+        }
+
+        // Social media sharing (placeholder functions)
+        document.querySelectorAll('.share-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const platform = this.dataset.platform;
+                shareResult(platform);
+            });
+        });
+
+        function shareResult(platform) {
+            alert(`Sharing result on ${platform}. Score: ${score}`);
+        }
+
+        // Create starry background
+        function createStarryBackground() {
+            const canvas = document.getElementById('stars');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            function Star(x, y, radius, color) {
+                this.x = x;
+                this.y = y;
+                this.radius = radius;
+                this.color = color;
+                this.dx = Math.random() * 0.5 - 0.25;
+                this.dy = Math.random() * 0.5 - 0.25;
+            }
+
+            Star.prototype.draw = function() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            };
+
+            Star.prototype.update = function() {
+                this.x += this.dx;
+                this.y += this.dy;
+
+                if (this.x < 0 || this.x > canvas.width) this.dx = -this.dx;
+                if (this.y < 0 || this.y > canvas.height) this.dy = -this.dy;
+
+                this.draw();
+            };
+
+            const stars = [];
+            for (let i = 0; i < 100; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 2;
+                const color = `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.8)`;
+                stars.push(new Star(x, y, radius, color));
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                stars.forEach(star => star.update());
+            }
+
+            animate();
+        }
+
+        // Trigger big win animation
+        function triggerBigWin() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+
+            const dollarSymbols = ['$', '💲', '💰', '🤑'];
+            const animationDuration = 3000;
+            const animationEnd = Date.now() + animationDuration;
+
+            function frame() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) return;
+
+                confetti({
+                    particleCount: 2,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    shapes: dollarSymbols
+                });
+                confetti({
+                    particleCount: 2,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    shapes: dollarSymbols
+                });
+
+                requestAnimationFrame(frame);
+            }
+
+            frame();
+        }
+
+        // Initialize the game
+        initGame();
+
+        // Prevent form submission on enter key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                document.getElementById('submit-guess').click();
+            }
+        });
+    </script>
+</body>
+</html># Gambler-s-Wordle
