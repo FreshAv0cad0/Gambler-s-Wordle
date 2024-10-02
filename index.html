@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gambler's Wordle</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <canvas id="stars"></canvas>
+    <canvas id="confetti-canvas"></canvas>
+    <div class="game-container">
+        <h1>Gambler's Wordle</h1>
+        <div class="game-content">
+            <div class="rules-section">
+                <h2>Game Rules</h2>
+                <ol>
+                    <li>Choose how many words you want to guess (1-5).</li>
+                    <li>Spin the wheel to get your words.</li>
+                    <li>Guess the words by entering letters.</li>
+                    <li>Win by guessing a word exactly</li>
+                    <li>Score 21 points for a BIG WIN!</li>
+                </ol>
+            </div>
+            <div class="roulette-section">
+                <div id="roulette-wheel"></div>
+                <h3>How many words do you want to guess?</h3>
+                <div class="number-selector">
+                    <div class="number-option" data-value="1">1</div>
+                    <div class="number-option" data-value="2">2</div>
+                    <div class="number-option" data-value="3">3</div>
+                    <div class="number-option" data-value="4">4</div>
+                    <div class="number-option" data-value="5">5</div>
+                </div>
+                <button id="spin-wheel">Spin Wheel</button>
+                <div id="spins-left">Spins left today: 5</div>
+            </div>
+        </div>
+        <div id="game-board"></div>
+        <button id="submit-guess">Submit Guess</button>
+        <div id="feedback" aria-live="polite"></div>
+        <div id="answer"></div>
+        <div id="score">Score: 0</div>
+        <div id="social-share">
+            <button class="share-button" data-platform="instagram">Share on Instagram</button>
+            <button class="share-button" data-platform="whatsapp">Share on WhatsApp</button>
+            <button class="share-button" data-platform="snapchat">Share on Snapchat</button>
+            <button class="share-button" data-platform="tiktok">Share on TikTok</button>
+        </div>
+        <a href="leaderboard.html" id="leaderboard-link">View Leaderboard</a>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

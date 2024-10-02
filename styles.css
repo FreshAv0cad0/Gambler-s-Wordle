@@ -1,0 +1,314 @@
+:root {
+    --primary: #206320;
+    --secondary: #ff0000;
+    --tertiary: #0000ff;
+    --background: #000000;
+    --text: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: var(--background);
+    color: var(--text);
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+#stars, #confetti-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+.game-container {
+    max-width: 1000px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+h1 {
+    color: var(--text);
+    font-size: 2.5em;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.game-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.rules-section, .roulette-section {
+    flex: 1;
+    min-width: 300px;
+    background-color: rgba(0, 20, 0, 0.8);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.rules-section h2 {
+    color: var(--secondary);
+    margin-top: 0;
+}
+
+.rules-section ol {
+    padding-left: 20px;
+}
+
+.rules-section li {
+    margin-bottom: 10px;
+}
+
+.roulette-section {
+    text-align: center;
+}
+
+.roulette-section h3 {
+    color: white;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+#roulette-wheel {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 3s cubic-bezier(0.25, 0.1, 0.25, 1);
+    background: conic-gradient(
+        var(--secondary) 0deg 120deg,
+        var(--primary) 120deg 240deg,
+        var(--tertiary) 240deg 360deg
+    );
+    box-shadow: 0 0 30px rgba(11, 11, 11, 0.5), 0 0 60px rgba(255, 0, 0, 0.3), 0 0 90px rgba(0, 0, 255, 0.2);
+}
+
+#roulette-wheel::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 80%;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 50%;
+    z-index: 1;
+}
+
+#roulette-wheel::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 20px solid var(--text);
+    z-index: 2;
+}
+
+.number-selector {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.number-option {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--primary);
+    color: var(--background);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.number-option:hover, .number-option.selected {
+    transform: scale(1.2);
+    background-color: var(--secondary);
+}
+
+#game-board {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.word-row {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.letter-input {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    text-align: center;
+    border: 2px solid rgba(219, 29, 29, 0.1);
+    border-radius: 5px;
+    background-color: rgba(213, 12, 12, 0.1);
+    color: var(--text);
+    transition: all 0.3s ease;
+}
+
+.letter-input:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: rgb(16, 118, 16);
+    color: var(--text);
+    border: none;
+    border-radius: 5px;
+    margin: 10px 0;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+button:hover {
+    background-color: #722626;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+}
+
+button:disabled {
+    background-color: #4a0000;
+    cursor: not-allowed;
+}
+
+#feedback, #answer {
+    margin-top: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+
+#score {
+    margin-top: 10px;
+    font-size: 1.2em;
+    color: var(--secondary);
+    text-align: center;
+}
+
+#social-share {
+    display: none;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.share-button {
+    margin: 0 5px;
+    padding: 5px 10px;
+    font-size: 14px;
+    background-color: var(--primary);
+    color: var(--background);
+}
+
+#leaderboard-link {
+    display: block;
+    margin-top: 20px;
+    color: var(--primary);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+#leaderboard-link:hover {
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+}
+
+@media (max-width: 768px) {
+    .game-content {
+        flex-direction: column;
+    }
+
+    .rules-section, .roulette-section {
+        width: 100%;
+    }
+
+    .letter-input {
+        width: 30px;
+        height: 30px;
+        font-size: 18px;
+    }
+
+    .number-option {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+    }
+
+    h1 {
+        font-size: 2em;
+    }
+
+    .rules-section h2, .roulette-section h3 {
+        font-size: 1.2em;
+    }
+
+    button {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .letter-input {
+        width: 25px;
+        height: 25px;
+        font-size: 16px;
+    }
+
+    .number-option {
+        width: 25px;
+        height: 25px;
+        font-size: 12px;
+    }
+
+    h1 {
+        font-size: 1.8em;
+    }
+
+    .rules-section h2, .roulette-section h3 {
+        font-size: 1em;
+    }
+
+    button {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
